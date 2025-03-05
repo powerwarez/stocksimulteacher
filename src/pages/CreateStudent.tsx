@@ -64,13 +64,6 @@ const CreateStudent = () => {
               name: name.trim(),
               pw: Math.floor(1000 + Math.random() * 9000).toString(),
               teacherInfo,
-              data: {
-                day_count: 1,
-                portfolio: {
-                  cash: 10000000,
-                  stocks: {}
-                }
-              }
             }
           ]);
 

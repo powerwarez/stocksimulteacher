@@ -26,6 +26,16 @@ const Sidebar = () => {
                 학생 생성
               </Link>
             </li>
+            <li>
+              <a 
+                href="https://stocksimul.streamlit.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block px-4 py-2 rounded hover:bg-gray-700 transition-colors text-2xl"
+              >
+                학생용 사이트
+              </a>
+            </li>
           </ul>
         </nav>
       </div>
