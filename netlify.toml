@@ -8,4 +8,6 @@
   status = 200
 
 [build.environment]
-  NODE_VERSION = "16" # 또는 프로젝트에서 사용하는 Node 버전
+  VITE_SUPABASE_URL = "https://aattjibhrzgwusrbucff.supabase.co"
+  VITE_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhdHRqaWJocnpnd3VzcmJ1Y2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3MTAzMTksImV4cCI6MjA1NjI4NjMxOX0.lnHkM9jbiQj8VAczmMLfPWnjgbxyUgts2LVQDiXQQ8Y"
+  NODE_VERSION = "20.5.0"
