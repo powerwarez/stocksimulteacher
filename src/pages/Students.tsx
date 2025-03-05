@@ -348,29 +348,21 @@ const Students: React.FC = () => {
   };
 
   // 학생 삭제 함수
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (account: string) => {
     try {
-      // 해당 사용자의 account 찾기
-      const userToDelete = users.find((user) => user.id === userId);
-      if (!userToDelete) {
-        throw new Error("사용자를 찾을 수 없습니다.");
-      }
-
       // account를 기준으로 사용자 삭제
       const { error: deleteError } = await supabase
         .from("users")
         .delete()
-        .eq("account", userToDelete.account);
+        .eq("account", account);
 
       if (deleteError) {
         throw deleteError;
       }
 
       // 삭제 후 사용자 목록 업데이트
-      setUsers(users.filter((user) => user.account !== userToDelete.account));
-      setSortedUsers(
-        sortedUsers.filter((user) => user.account !== userToDelete.account)
-      );
+      setUsers(users.filter((user) => user.account !== account));
+      setSortedUsers(sortedUsers.filter((user) => user.account !== account));
       alert("학생이 성공적으로 삭제되었습니다.");
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -439,7 +431,7 @@ const Students: React.FC = () => {
                 className="w-80 bg-white shadow-md rounded-lg p-4 mb-4 relative"
               >
                 <button
-                  onClick={() => setUserToDelete(user.id)}
+                  onClick={() => setUserToDelete(user.account)}
                   className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors"
                   title="학생 삭제"
                 >
