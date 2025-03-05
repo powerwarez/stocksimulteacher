@@ -115,6 +115,7 @@ const Students: React.FC = () => {
   } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPasswordFor, setShowPasswordFor] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   // users가 변경될 때마다 sortedUsers 업데이트
   useEffect(() => {
@@ -346,6 +347,25 @@ const Students: React.FC = () => {
     }
   };
 
+  // 학생 삭제 함수
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const { error } = await supabase.from("users").delete().eq("id", userId);
+
+      if (error) {
+        throw error;
+      }
+
+      // 삭제 후 사용자 목록 업데이트
+      setUsers(users.filter((user) => user.id !== userId));
+      setSortedUsers(sortedUsers.filter((user) => user.id !== userId));
+      alert("학생이 성공적으로 삭제되었습니다.");
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("학생 삭제 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <div className="flex-1 p-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">학생 현황</h1>
@@ -395,15 +415,33 @@ const Students: React.FC = () => {
           </div>
         </div>
       )}
-      <div className="overflow-x-auto">
-        <div className="flex flex-nowrap gap-4 pb-4">
+      <div>
+        <div className="flex flex-wrap gap-4 pb-4">
           {sortedUsers.map((user) => {
             const portfolio = getPortfolio(user.data);
             return (
               <div
                 key={user.account}
-                className="flex-none w-80 bg-white shadow-md rounded-lg p-4"
+                className="w-80 bg-white shadow-md rounded-lg p-4 mb-4 relative"
               >
+                <button
+                  onClick={() => setUserToDelete(user.id)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors"
+                  title="학생 삭제"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
                 <h2 className="text-lg font-bold mb-2">{user.name}</h2>
                 <p className="text-sm text-gray-600">계정: {user.account}</p>
                 <p className="text-sm text-gray-600 flex items-center gap-2">
@@ -509,6 +547,36 @@ const Students: React.FC = () => {
         }}
         onUpdate={handlePasswordUpdate}
       />
+
+      {/* 삭제 확인 모달 */}
+      {userToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">학생 삭제 확인</h3>
+            <p className="mb-6">
+              학생의 자료가 모두 지워지고 복구할 수 없습니다. 정말
+              삭제하시겠습니까?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setUserToDelete(null)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  handleDeleteUser(userToDelete);
+                  setUserToDelete(null);
+                }}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
