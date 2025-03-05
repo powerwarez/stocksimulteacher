@@ -15,9 +15,17 @@ interface Portfolio {
 interface UserData {
   day_count: number;
   portfolio: Portfolio;
+  stocks: {
+    [sector: string]: {
+      [stockName: string]: {
+        current_price: number;
+      }
+    }
+  };
 }
 
 interface User {
+  id: string;
   teacherInfo: {
     school: string;
     displayName: string;
@@ -26,7 +34,7 @@ interface User {
   account: string;
   name: string;
   pw: string;
-  data: UserData | string | null; // data가 문자열일 수도 있으므로 추가
+  data: UserData | string | null;
 }
 
 // 모달 컴포넌트를 분리
@@ -85,10 +93,19 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, selectedUser, onC
   );
 };
 
+interface StockData {
+  [key: string]: {
+    [key: string]: {
+      current_price: number;
+      // 다른 필요한 속성들
+    }
+  }
+}
+
 const Students: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [sortedUsers, setSortedUsers] = useState<User[]>([]);
-  const [stocksData, setStocksData] = useState<any>(null);
+  const [stocksData, setStocksData] = useState<StockData | null>(null);
   const [school, setSchool] = useState('');
   const [teacherInfo, setTeacherInfo] = useState({
     school: '',
@@ -181,18 +198,20 @@ const Students: React.FC = () => {
   };
 
   // 현재 가격을 찾는 함수 수정
-  const findCurrentPrice = (stockName: string, userData: any): number | undefined => {
+  const findCurrentPrice = (stockName: string, userData: UserData | string): number | undefined => {
     try {
+      let parsedData: UserData;
       if (typeof userData === 'string') {
-        userData = JSON.parse(userData);
+        parsedData = JSON.parse(userData);
+      } else {
+        parsedData = userData;
       }
       
-      const stocksData = userData.stocks;
-      // 모든 섹터를 순회
-      for (const [sectorName, sectorData] of Object.entries(stocksData)) {
-        // 섹터 내의 주식 데이터에서 찾기
-        if (sectorData[stockName]) {
-          return sectorData[stockName].current_price;
+      const stocksData = parsedData.stocks;
+      for (const [, sectorData] of Object.entries(stocksData)) {
+        const typedSectorData = sectorData as { [key: string]: { current_price: number } };
+        if (typedSectorData[stockName]) {
+          return typedSectorData[stockName].current_price;
         }
       }
     } catch (error) {

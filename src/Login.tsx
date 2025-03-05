@@ -13,7 +13,7 @@ function Login() {
         const { user } = session;
         setUserInfo({
           displayName: user.user_metadata.full_name,
-          email: user.email,
+          email: user.email || '',
         });
         navigate('/mainpage');
       }
