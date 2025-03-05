@@ -144,10 +144,13 @@ const Students: React.FC = () => {
   }, [teacherInfo]);
 
   const handleSchoolSubmit = async () => {
+    console.log("handleSchoolSubmit 함수 호출됨");
+    console.log("현재 입력된 학교:", school);
     // Google 인증을 통해 얻은 사용자 정보를 가져옵니다.
     const {
       data: { user },
     } = await supabase.auth.getUser();
+    console.log("인증된 사용자 정보:", user);
     if (user) {
       setTeacherInfo({
         school,
