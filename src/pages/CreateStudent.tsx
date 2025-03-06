@@ -81,7 +81,11 @@ const CreateStudent = () => {
   return (
     <div className="flex-1 p-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">학생 생성</h1>
-      
+      <div className="mb-6">
+        <p className="text-sm text-gray-600">
+          아래에 학교 이름을 입력하시면 학생 계정을 생성할 수 있습니다.
+        </p>
+      </div>
       {/* 학교 정보 입력 섹션 */}
       <div className="mb-8 max-w-md">
         <div className="flex items-end gap-4 mb-4">
