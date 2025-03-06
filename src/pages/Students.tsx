@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { jsPDF } from 'jspdf';
 
 interface Stock {
   quantity: number;
@@ -322,6 +323,31 @@ const Students: React.FC = () => {
     });
     setSortedUsers(sorted);
   };
+
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    let yPosition = 10;
+    doc.setFontSize(12);
+    // Iterate over sortedUsers to add student information with visible passwords
+    sortedUsers.forEach((user) => {
+      doc.text(`학생이름: ${user.name}`, 10, yPosition);
+      yPosition += 10;
+      doc.text(`계정: ${user.account}`, 10, yPosition);
+      yPosition += 10;
+      doc.text(`비밀번호: ${user.pw}`, 10, yPosition);
+      yPosition += 10;
+      doc.text('---------------------------', 10, yPosition);
+      yPosition += 10;
+      // If yPosition is near page end, add a new page
+      if (yPosition > 280) {
+        doc.addPage();
+        yPosition = 10;
+      }
+    });
+    const fileName = `${teacherInfo.school}_${teacherInfo.displayName}_학생명렬표.pdf`;
+    doc.save(fileName);
+  };
+
   // 비밀번호 수정 함수
   const handlePasswordUpdate = async (newPassword: string) => {
     if (!selectedUser || !newPassword) return;
@@ -400,6 +426,12 @@ const Students: React.FC = () => {
         >
           불러오기
         </button>
+        <button
+          onClick={handleDownloadPdf}
+          className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition duration-150 ease-in-out ml-4"
+        >
+          학생 명렬표 다운
+        </button>
       </div>
       {users.length > 0 && (
         <div className="mb-6">
@@ -430,11 +462,11 @@ const Students: React.FC = () => {
               보유종목 수량순
             </button>
             <button
-onClick={sortByName}
-className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition duration-150 ease-in-out"
->
-학생명 가나다순
-</button>
+              onClick={sortByName}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition duration-150 ease-in-out"
+            >
+              학생명 가나다순
+            </button>
           </div>
         </div>
       )}
