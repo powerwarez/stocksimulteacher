@@ -40,7 +40,7 @@ const Sidebar = () => {
         </nav>
       </div>
       <div className="absolute bottom-4 left-4">
-        <a href="https://onmusil.gyo6.net/apps/board/AN3pZdDJL7I" target="_blank" rel="noopener noreferrer">
+        <a href="https://huggingface.co/spaces/ll7098ll/stock2" target="_blank" rel="noopener noreferrer">
           <img src="https://huggingface.co/spaces/powerwarez/gailabicon/resolve/main/gailab07.png" alt="gailab" className="w-16 h-16" />
         </a>
         <h2 className="text-xl mt-2">제작: 이병민, 서동성</h2>
