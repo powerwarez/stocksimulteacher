@@ -316,6 +316,12 @@ const Students: React.FC = () => {
     setSortedUsers(sorted);
   };
 
+  const sortByName = () => {
+    const sorted = [...sortedUsers].sort((a, b) => {
+      return a.name.localeCompare(b.name);
+    });
+    setSortedUsers(sorted);
+  };
   // 비밀번호 수정 함수
   const handlePasswordUpdate = async (newPassword: string) => {
     if (!selectedUser || !newPassword) return;
@@ -418,6 +424,12 @@ const Students: React.FC = () => {
             >
               보유종목 수량순
             </button>
+            <button
+onClick={sortByName}
+className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition duration-150 ease-in-out"
+>
+학생명 가나다순
+</button>
           </div>
         </div>
       )}
@@ -560,9 +572,9 @@ const Students: React.FC = () => {
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-xl font-bold mb-4">학생 삭제 확인</h3>
             <p className="mb-6">
-              학생의 자료가 모두 지워지고 복구할 수 없습니다. 정말
-              삭제하시겠습니까?
+              학생의 자료가 모두 지워지고 복구할 수 없습니다.
             </p>
+            <p className="mb-6">정말 삭제하시겠습니까?</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setUserToDelete(null)}
