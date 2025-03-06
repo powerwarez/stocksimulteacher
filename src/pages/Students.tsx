@@ -426,15 +426,15 @@ const Students: React.FC = () => {
         >
           불러오기
         </button>
-        <button
+      </div>
+      {users.length > 0 && (
+        <div className="mb-6">
+          <button
           onClick={handleDownloadPdf}
           className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition duration-150 ease-in-out ml-4"
         >
           학생 명렬표 다운
         </button>
-      </div>
-      {users.length > 0 && (
-        <div className="mb-6">
           <p className="text-lg font-semibold mb-2">정렬</p>
           <div className="flex gap-2">
             <button
