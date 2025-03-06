@@ -132,7 +132,7 @@ const CreateStudent = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             학생 이름 (엔터로 구분)
           </label>
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-red-600 mb-2">
             tip! 학생 이름 앞에 번호를 붙이면 학생 번호 순서대로 정렬할 수 있습니다.
           </p>
           <textarea
