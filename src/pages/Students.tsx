@@ -382,6 +382,11 @@ const Students: React.FC = () => {
     <div className="flex-1 p-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">학생 현황</h1>
       <div className="mb-6">
+        <p className="text-sm text-gray-600">
+          아래에 학생 생성 시 쓰셨던 학교 이름을 입력하시면 학생 정보를 불러올 수 있습니다.
+        </p>
+      </div>
+      <div className="mb-6">
         <input
           type="text"
           placeholder="학교 이름을 입력하세요"
