@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { supabase } from "../supabaseClient";
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface Stock {
   quantity: number;
@@ -117,6 +118,7 @@ const Students: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPasswordFor, setShowPasswordFor] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   // users가 변경될 때마다 sortedUsers 업데이트
   useEffect(() => {
@@ -324,28 +326,25 @@ const Students: React.FC = () => {
     setSortedUsers(sorted);
   };
 
-  const handleDownloadPdf = () => {
-    const doc = new jsPDF();
-    let yPosition = 10;
-    doc.setFontSize(12);
-    // Iterate over sortedUsers to add student information with visible passwords
-    sortedUsers.forEach((user) => {
-      doc.text(`학생이름: ${user.name}`, 10, yPosition);
-      yPosition += 10;
-      doc.text(`계정: ${user.account}`, 10, yPosition);
-      yPosition += 10;
-      doc.text(`비밀번호: ${user.pw}`, 10, yPosition);
-      yPosition += 10;
-      doc.text('---------------------------', 10, yPosition);
-      yPosition += 10;
-      // If yPosition is near page end, add a new page
-      if (yPosition > 280) {
-        doc.addPage();
-        yPosition = 10;
-      }
+  const handleDownloadPdf = async () => {
+    if (!pdfRef.current) return;
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfElement = pdfRef.current;
+
+    const canvas = await html2canvas(pdfElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false
     });
+
+    const imgWidth = 210; // A4 width in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const imgData = canvas.toDataURL('image/png');
+
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
     const fileName = `${teacherInfo.school}_${teacherInfo.displayName}_학생명렬표.pdf`;
-    doc.save(fileName);
+    pdf.save(fileName);
   };
 
   // 비밀번호 수정 함수
@@ -632,6 +631,47 @@ const Students: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Add hidden PDF template */}
+      <div ref={pdfRef} className="hidden">
+        <div className="bg-white p-8">
+          <h1 className="text-3xl font-bold mb-8 text-center">
+            {teacherInfo.school} 학생 명렬표
+          </h1>
+          <p className="text-right mb-8">
+            담당교사: {teacherInfo.displayName}
+          </p>
+          <div className="space-y-6">
+            {sortedUsers.map((user, index) => (
+              <div key={user.account} className="border-b pb-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="font-semibold">학생 {index + 1}</p>
+                    <p className="text-gray-700">이름: {user.name}</p>
+                    <p className="text-gray-700">계정: {user.account}</p>
+                    <p className="text-gray-700">비밀번호: {user.pw}</p>
+                  </div>
+                  <div>
+                    {user.data && typeof user.data !== 'string' && (
+                      <>
+                        <p className="text-gray-700">
+                          현금: {user.data.portfolio.cash.toLocaleString()}원
+                        </p>
+                        <p className="text-gray-700">
+                          보유 주식 수: {Object.keys(user.data.portfolio.stocks || {}).length}개
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 text-right text-sm text-gray-500">
+            출력일: {new Date().toLocaleDateString()}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
