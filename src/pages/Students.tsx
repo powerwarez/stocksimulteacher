@@ -406,22 +406,51 @@ const Students: React.FC = () => {
   const handleDownloadPdf = async () => {
     if (!pdfRef.current) return;
 
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfElement = pdfRef.current;
+    try {
+      // PDF 템플릿을 잠시 보이게 만들기
+      if (pdfRef.current) {
+        pdfRef.current.style.position = 'absolute';
+        pdfRef.current.style.left = '0';
+        pdfRef.current.style.top = '0';
+        pdfRef.current.style.width = '100%';
+        pdfRef.current.style.height = 'auto';
+        pdfRef.current.style.zIndex = '-9999';
+        pdfRef.current.style.opacity = '1';
+        pdfRef.current.style.visibility = 'visible';
+      }
 
-    const canvas = await html2canvas(pdfElement, {
-      scale: 2,
-      useCORS: true,
-      logging: false
-    });
+      // 약간의 지연을 주어 렌더링이 완료되도록 함
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-    const imgWidth = 210; // A4 width in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfElement = pdfRef.current;
 
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-    const fileName = `${teacherInfo?.school}_${teacherInfo?.displayName}_학생명렬표.pdf`;
-    pdf.save(fileName);
+      const canvas = await html2canvas(pdfElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgData = canvas.toDataURL('image/jpeg', 1.0); // JPEG 형식으로 변경
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+      const fileName = `${teacherInfo?.school || '학교'}_${teacherInfo?.displayName || '교사'}_학생명렬표.pdf`;
+      pdf.save(fileName);
+
+      // PDF 생성 후 다시 숨기기
+      if (pdfRef.current) {
+        pdfRef.current.style.position = 'absolute';
+        pdfRef.current.style.left = '-9999px';
+        pdfRef.current.style.visibility = 'hidden';
+      }
+    } catch (error) {
+      console.error('PDF 생성 중 오류 발생:', error);
+      alert('PDF 생성 중 오류가 발생했습니다.');
+    }
   };
 
   // 비밀번호 수정 함수
@@ -508,13 +537,6 @@ const Students: React.FC = () => {
         >
           {isLoading ? "로딩 중..." : "불러오기"}
         </button>
-        <button
-          onClick={handleDownloadPdf}
-          className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition duration-150 ease-in-out ml-4"
-          disabled={isLoading || users.length === 0}
-        >
-          학생 명렬표 다운
-        </button>
       </div>
 
       {/* 오류 메시지 표시 */}
@@ -535,6 +557,14 @@ const Students: React.FC = () => {
       {/* 학생 데이터가 있을 때만 정렬 버튼과 학생 카드 표시 */}
       {!isLoading && users.length > 0 && (
         <div className="mb-6">
+          <button
+          onClick={handleDownloadPdf}
+          className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition duration-150 ease-in-out ml-4"
+          disabled={isLoading || users.length === 0}
+        >
+          학생 명렬표 다운
+        </button>
+        <p> </p>
           <p className="text-lg font-semibold mb-2">정렬</p>
           <div className="flex gap-2">
             <button
@@ -733,14 +763,21 @@ const Students: React.FC = () => {
         </div>
       )}
 
-      {/* Add hidden PDF template */}
-      <div ref={pdfRef} className="hidden">
-        <div className="bg-white p-8">
+      {/* PDF 템플릿을 hidden 대신 화면 밖으로 이동 */}
+      <div 
+        ref={pdfRef} 
+        style={{ 
+          position: 'absolute', 
+          left: '-9999px', 
+          visibility: 'hidden' 
+        }}
+      >
+        <div className="bg-white p-8" style={{ width: '800px' }}>
           <h1 className="text-3xl font-bold mb-8 text-center">
-            {teacherInfo?.school} 학생 명렬표
+            {teacherInfo?.school || '학교'} 학생 명렬표
           </h1>
           <p className="text-right mb-8">
-            담당교사: {teacherInfo?.displayName}
+            담당교사: {teacherInfo?.displayName || '교사'}
           </p>
           <div className="space-y-6">
             {sortedUsers.map((user, index) => (
