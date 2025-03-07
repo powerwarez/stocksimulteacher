@@ -407,46 +407,38 @@ const Students: React.FC = () => {
     if (!pdfRef.current) return;
 
     try {
-      // PDF 템플릿을 잠시 보이게 만들기
-      if (pdfRef.current) {
-        pdfRef.current.style.position = 'absolute';
-        pdfRef.current.style.left = '0';
-        pdfRef.current.style.top = '0';
-        pdfRef.current.style.width = '100%';
-        pdfRef.current.style.height = 'auto';
-        pdfRef.current.style.zIndex = '-9999';
-        pdfRef.current.style.opacity = '1';
-        pdfRef.current.style.visibility = 'visible';
-      }
-
-      // 약간의 지연을 주어 렌더링이 완료되도록 함
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfElement = pdfRef.current;
-
-      const canvas = await html2canvas(pdfElement, {
+      // 렌더링을 위해 임시로 보이게 만들기
+      pdfRef.current.style.display = 'block';
+      pdfRef.current.style.position = 'fixed';
+      pdfRef.current.style.top = '0';
+      pdfRef.current.style.left = '0';
+      pdfRef.current.style.zIndex = '-9999';
+      pdfRef.current.style.width = '1024px'; // 고정 너비 설정
+      pdfRef.current.style.background = 'white';
+      
+      // 약간의 지연을 주어 DOM이 업데이트될 시간을 줌
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const canvas = await html2canvas(pdfRef.current, {
         scale: 2,
         useCORS: true,
         logging: false,
         allowTaint: true,
         backgroundColor: '#ffffff'
       });
-
+      
+      // PDF 생성 후 다시 숨기기
+      pdfRef.current.style.display = 'none';
+      
       const imgWidth = 210; // A4 width in mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       const imgData = canvas.toDataURL('image/jpeg', 1.0); // JPEG 형식으로 변경
-
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
       pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+      
       const fileName = `${teacherInfo?.school || '학교'}_${teacherInfo?.displayName || '교사'}_학생명렬표.pdf`;
       pdf.save(fileName);
-
-      // PDF 생성 후 다시 숨기기
-      if (pdfRef.current) {
-        pdfRef.current.style.position = 'absolute';
-        pdfRef.current.style.left = '-9999px';
-        pdfRef.current.style.visibility = 'hidden';
-      }
     } catch (error) {
       console.error('PDF 생성 중 오류 발생:', error);
       alert('PDF 생성 중 오류가 발생했습니다.');
@@ -763,16 +755,9 @@ const Students: React.FC = () => {
         </div>
       )}
 
-      {/* PDF 템플릿을 hidden 대신 화면 밖으로 이동 */}
-      <div 
-        ref={pdfRef} 
-        style={{ 
-          position: 'absolute', 
-          left: '-9999px', 
-          visibility: 'hidden' 
-        }}
-      >
-        <div className="bg-white p-8" style={{ width: '800px' }}>
+      {/* Add hidden PDF template */}
+      <div ref={pdfRef} className="hidden">
+        <div className="bg-white p-8" style={{ width: '1024px' }}>
           <h1 className="text-3xl font-bold mb-8 text-center">
             {teacherInfo?.school || '학교'} 학생 명렬표
           </h1>
@@ -790,13 +775,17 @@ const Students: React.FC = () => {
                     <p className="text-gray-700">비밀번호: {user.pw}</p>
                   </div>
                   <div>
-                    {user.data && typeof user.data !== 'string' && (
+                    {user.data && (
                       <>
                         <p className="text-gray-700">
-                          현금: {user.data.portfolio.cash.toLocaleString()}원
+                          현금: {typeof user.data === 'string' 
+                            ? JSON.parse(user.data).portfolio.cash.toLocaleString() 
+                            : user.data.portfolio.cash.toLocaleString()}원
                         </p>
                         <p className="text-gray-700">
-                          보유 주식 수: {Object.keys(user.data.portfolio.stocks || {}).length}개
+                          보유 주식 수: {typeof user.data === 'string'
+                            ? Object.keys(JSON.parse(user.data).portfolio.stocks || {}).length
+                            : Object.keys(user.data.portfolio.stocks || {}).length}개
                         </p>
                       </>
                     )}
