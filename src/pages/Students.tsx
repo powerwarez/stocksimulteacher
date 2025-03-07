@@ -549,12 +549,13 @@ const Students: React.FC = () => {
       {/* 학생 데이터가 있을 때만 정렬 버튼과 학생 카드 표시 */}
       {!isLoading && users.length > 0 && (
         <div className="mb-6">
+          <p className="text-sm text-gray-600">학생 현황을 내려받아 학생 로그인 정보를 출력할 때 사용하세요.</p>
           <button
           onClick={handleDownloadPdf}
           className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition duration-150 ease-in-out ml-4"
           disabled={isLoading || users.length === 0}
         >
-          학생 명렬표 다운
+          학생 현황 다운
         </button>
         <br/>
           <p className="text-lg font-semibold mb-2">정렬</p>
