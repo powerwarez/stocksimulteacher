@@ -1,15 +1,15 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link} from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 const Sidebar = () => {
-  const navigate = useNavigate();
+
 
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       alert('로그아웃 되었습니다. 가이랩은 선생님의 열정을 응원합니다.');
-      navigate('/');
+      window.location.href = '/';
     } catch (error) {
       console.error('로그아웃 오류:', error);
       alert('로그아웃 중 오류가 발생했습니다.');
@@ -56,6 +56,9 @@ const Sidebar = () => {
                 onClick={handleLogout}
                 className="block px-2 py-1 rounded hover:bg-gray-700 transition-colors text-xl"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
                 로그아웃
               </button>
             </li>
