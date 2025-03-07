@@ -556,7 +556,7 @@ const Students: React.FC = () => {
         >
           학생 명렬표 다운
         </button>
-        <p> </p>
+        <br/>
           <p className="text-lg font-semibold mb-2">정렬</p>
           <div className="flex gap-2">
             <button
