@@ -1,6 +1,21 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      alert('로그아웃 되었습니다. 가이랩은 선생님의 열정을 응원합니다.');
+      navigate('/');
+    } catch (error) {
+      console.error('로그아웃 오류:', error);
+      alert('로그아웃 중 오류가 발생했습니다.');
+    }
+  };
+
   return (
     <div className="w-64 flex-shrink-0 min-h-screen bg-gray-800 text-white p-4">
       <h1 className="text-3xl font-bold mb-0 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-transparent bg-clip-text">초등학생을</h1>
@@ -35,6 +50,14 @@ const Sidebar = () => {
               >
                 학생용 사이트
               </a>
+            </li>
+            <li className="mt-8">
+              <button 
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 rounded bg-red-600 hover:bg-red-700 transition-colors text-2xl"
+              >
+                로그아웃
+              </button>
             </li>
           </ul>
         </nav>
