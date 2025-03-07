@@ -1,6 +1,34 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
+// 경고 모달 컴포넌트 추가
+interface WarningModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  message: string;
+}
+
+const WarningModal: React.FC<WarningModalProps> = ({ isOpen, onClose, message }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-xl font-bold mb-4">입력 오류</h3>
+        <p className="mb-6">{message}</p>
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            확인
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CreateStudent = () => {
   const [school, setSchool] = useState('');
   const [names, setNames] = useState('');
@@ -9,6 +37,8 @@ const CreateStudent = () => {
     school: string;
     displayName: string;
   } | null>(null);
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
 
   // 교사 정보 설정
   const handleSchoolSubmit = async () => {
@@ -40,6 +70,12 @@ const CreateStudent = () => {
     }
   };
 
+  // 한글 이름 검증 함수 추가
+  const isValidKoreanName = (name: string) => {
+    const koreanNameRegex = /^[0-9\s]*[가-힣]{2,}$/;
+    return koreanNameRegex.test(name);
+  };
+
   // 학생 생성
   const handleCreateStudents = async () => {
     if (!teacherInfo) {
@@ -50,6 +86,14 @@ const CreateStudent = () => {
     const studentNames = names.split('\n').filter(name => name.trim());
     if (studentNames.length === 0) {
       alert('학생 이름을 입력해주세요.');
+      return;
+    }
+
+    // 이름 유효성 검사
+    const invalidNames = studentNames.filter(name => !isValidKoreanName(name.trim()));
+    if (invalidNames.length > 0) {
+      setWarningMessage("학생 이름은 한글로 2자 이상 입력해주세요.");
+      setIsWarningModalOpen(true);
       return;
     }
 
@@ -150,6 +194,13 @@ const CreateStudent = () => {
           </button>
         </div>
       )}
+
+      {/* 경고 모달 추가 */}
+      <WarningModal
+        isOpen={isWarningModalOpen}
+        onClose={() => setIsWarningModalOpen(false)}
+        message={warningMessage}
+      />
     </div>
   );
 };
