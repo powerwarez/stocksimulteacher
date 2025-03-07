@@ -150,22 +150,56 @@ const Students: React.FC = () => {
   const handleSchoolSubmit = async () => {
     console.log("handleSchoolSubmit 함수 호출됨");
     console.log("현재 입력된 학교:", school);
-    // Google 인증을 통해 얻은 사용자 정보를 가져옵니다.
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    console.log("인증된 사용자 정보:", user);
-    if (user) {
-      setTeacherInfo({
+    
+    try {
+      // Google 인증을 통해 얻은 사용자 정보를 가져옵니다.
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        console.error("사용자 정보 가져오기 실패:", error);
+        alert("사용자 정보를 가져오는데 실패했습니다.");
+        return;
+      }
+
+      console.log("인증된 사용자 정보:", user);
+      
+      if (!user) {
+        console.error("사용자 정보가 없습니다.");
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const newTeacherInfo = {
         school,
         displayName: user.user_metadata.full_name || "",
         email: user.email || "",
-      });
-      console.log("Updated teacherInfo:", {
-        school,
-        displayName: user.user_metadata.full_name || "",
-        email: user.email || "",
-      });
+      };
+
+      console.log("새로운 teacherInfo:", newTeacherInfo);
+      setTeacherInfo(newTeacherInfo);
+
+      // 직접 데이터를 가져오는 호출 추가
+      const { data: userData, error: fetchError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("teacherInfo->>school", school)
+        .eq("teacherInfo->>displayName", user.user_metadata.full_name)
+        .eq("teacherInfo->>email", user.email);
+
+      if (fetchError) {
+        console.error("학생 데이터 가져오기 실패:", fetchError);
+        alert("학생 정보를 가져오는데 실패했습니다.");
+        return;
+      }
+
+      console.log("가져온 학생 데이터:", userData);
+      if (userData) {
+        setUsers(userData as User[]);
+      }
+
+    } catch (error) {
+      console.error("handleSchoolSubmit 에러:", error);
+      alert("오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
 
