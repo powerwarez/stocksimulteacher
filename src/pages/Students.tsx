@@ -105,11 +105,11 @@ const Students: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [sortedUsers, setSortedUsers] = useState<User[]>([]);
   const [school, setSchool] = useState("");
-  const [teacherInfo, setTeacherInfo] = useState({
-    school: "",
-    displayName: "",
-    email: "",
-  });
+  const [teacherInfo, setTeacherInfo] = useState<{
+    school: string;
+    displayName: string;
+    email: string;
+  } | null>(null);
   const [selectedUser, setSelectedUser] = useState<{
     id: string;
     account: string;
@@ -119,37 +119,48 @@ const Students: React.FC = () => {
   const [showPasswordFor, setShowPasswordFor] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
+  // 로딩 상태 추가
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // users가 변경될 때마다 sortedUsers 업데이트
   useEffect(() => {
-    setSortedUsers(users);
+    setSortedUsers([...users]);
   }, [users]);
 
+  // 컴포넌트 마운트 시 로그인 상태 확인
   useEffect(() => {
-    const fetchUsers = async () => {
-      if (teacherInfo.school) {
-        const { data, error } = await supabase
-          .from("users")
-          .select("*")
-          .eq("teacherInfo->>school", teacherInfo.school)
-          .eq("teacherInfo->>displayName", teacherInfo.displayName)
-          .eq("teacherInfo->>email", teacherInfo.email);
-
+    const checkAuth = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
         if (error) {
-          console.error("Error fetching users:", error.message);
+          console.error("인증 확인 오류:", error);
+          setError("로그인 상태를 확인하는데 문제가 발생했습니다.");
+        } else if (user) {
+          console.log("로그인된 사용자:", user);
         } else {
-          console.log("Fetched users:", data);
-          setUsers(data as User[]);
+          console.log("로그인되지 않은 상태");
         }
+      } catch (err) {
+        console.error("인증 확인 중 예외 발생:", err);
+        setError("로그인 상태를 확인하는데 문제가 발생했습니다.");
+      } finally {
+        // 초기 로딩 상태 해제
+        setIsLoading(false);
       }
     };
 
-    fetchUsers();
-  }, [teacherInfo]);
+    setIsLoading(true);
+    checkAuth();
+  }, []);
 
   const handleSchoolSubmit = async () => {
     console.log("handleSchoolSubmit 함수 호출됨");
     console.log("현재 입력된 학교:", school);
+    
+    // 로딩 상태 설정 및 오류 초기화
+    setIsLoading(true);
+    setError(null);
     
     try {
       // Google 인증을 통해 얻은 사용자 정보를 가져옵니다.
@@ -157,7 +168,7 @@ const Students: React.FC = () => {
       
       if (error) {
         console.error("사용자 정보 가져오기 실패:", error);
-        alert("사용자 정보를 가져오는데 실패했습니다.");
+        setError("사용자 정보를 가져오는데 실패했습니다.");
         return;
       }
 
@@ -165,7 +176,7 @@ const Students: React.FC = () => {
       
       if (!user) {
         console.error("사용자 정보가 없습니다.");
-        alert("로그인이 필요합니다.");
+        setError("로그인이 필요합니다.");
         return;
       }
 
@@ -197,7 +208,7 @@ const Students: React.FC = () => {
 
       if (fetchError) {
         console.error("학생 데이터 가져오기 실패:", fetchError);
-        alert("학생 정보를 가져오는데 실패했습니다.");
+        setError("학생 정보를 가져오는데 실패했습니다.");
         return;
       }
 
@@ -220,14 +231,18 @@ const Students: React.FC = () => {
         
         if (schoolOnlyData && schoolOnlyData.length > 0) {
           console.log("학교는 일치하지만 교사 정보가 일치하지 않는 데이터가 있습니다.");
+          setError("해당 학교에 학생 정보가 있지만, 교사 정보가 일치하지 않습니다.");
+        } else {
+          setError("해당 조건의 학생 정보가 없습니다.");
         }
-        
-        alert("해당 조건의 학생 정보가 없습니다.");
       }
 
     } catch (error) {
       console.error("handleSchoolSubmit 에러:", error);
-      alert("오류가 발생했습니다. 다시 시도해주세요.");
+      setError("오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      // 로딩 상태 해제
+      setIsLoading(false);
     }
   };
 
@@ -405,7 +420,7 @@ const Students: React.FC = () => {
     const imgData = canvas.toDataURL('image/png');
 
     pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-    const fileName = `${teacherInfo.school}_${teacherInfo.displayName}_학생명렬표.pdf`;
+    const fileName = `${teacherInfo?.school}_${teacherInfo?.displayName}_학생명렬표.pdf`;
     pdf.save(fileName);
   };
 
@@ -480,22 +495,46 @@ const Students: React.FC = () => {
           value={school}
           onChange={(e) => setSchool(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mr-4"
+          disabled={isLoading}
         />
         <button
           onClick={handleSchoolSubmit}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition duration-150 ease-in-out"
+          className={`${
+            isLoading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-600"
+          } text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition duration-150 ease-in-out`}
+          disabled={isLoading}
         >
-          불러오기
+          {isLoading ? "로딩 중..." : "불러오기"}
         </button>
-      </div>
-      {users.length > 0 && (
-        <div className="mb-6">
-          <button
+        <button
           onClick={handleDownloadPdf}
           className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition duration-150 ease-in-out ml-4"
+          disabled={isLoading || users.length === 0}
         >
           학생 명렬표 다운
         </button>
+      </div>
+
+      {/* 오류 메시지 표시 */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {/* 로딩 중 표시 */}
+      {isLoading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <span className="ml-3 text-gray-600">로딩 중...</span>
+        </div>
+      )}
+
+      {/* 학생 데이터가 있을 때만 정렬 버튼과 학생 카드 표시 */}
+      {!isLoading && users.length > 0 && (
+        <div className="mb-6">
           <p className="text-lg font-semibold mb-2">정렬</p>
           <div className="flex gap-2">
             <button
@@ -698,10 +737,10 @@ const Students: React.FC = () => {
       <div ref={pdfRef} className="hidden">
         <div className="bg-white p-8">
           <h1 className="text-3xl font-bold mb-8 text-center">
-            {teacherInfo.school} 학생 명렬표
+            {teacherInfo?.school} 학생 명렬표
           </h1>
           <p className="text-right mb-8">
-            담당교사: {teacherInfo.displayName}
+            담당교사: {teacherInfo?.displayName}
           </p>
           <div className="space-y-6">
             {sortedUsers.map((user, index) => (
