@@ -169,22 +169,31 @@ const Students: React.FC = () => {
         return;
       }
 
+      const displayName = user.user_metadata.full_name || "";
+      const email = user.email || "";
+      
+      console.log("검색에 사용할 정보:", {
+        school,
+        displayName,
+        email
+      });
+
       const newTeacherInfo = {
         school,
-        displayName: user.user_metadata.full_name || "",
-        email: user.email || "",
+        displayName,
+        email,
       };
 
       console.log("새로운 teacherInfo:", newTeacherInfo);
       setTeacherInfo(newTeacherInfo);
 
-      // 직접 데이터를 가져오는 호출 추가
+      // 모든 조건 사용
       const { data: userData, error: fetchError } = await supabase
         .from("users")
         .select("*")
         .eq("teacherInfo->>school", school)
-        .eq("teacherInfo->>displayName", user.user_metadata.full_name)
-        .eq("teacherInfo->>email", user.email);
+        .eq("teacherInfo->>displayName", displayName)
+        .eq("teacherInfo->>email", email);
 
       if (fetchError) {
         console.error("학생 데이터 가져오기 실패:", fetchError);
@@ -193,8 +202,27 @@ const Students: React.FC = () => {
       }
 
       console.log("가져온 학생 데이터:", userData);
-      if (userData) {
+      
+      if (userData && userData.length > 0) {
         setUsers(userData as User[]);
+        setSortedUsers(userData as User[]);
+        console.log("학생 데이터 설정 완료:", userData.length, "명의 학생 정보가 로드되었습니다.");
+      } else {
+        console.log("해당 조건의 학생 정보가 없습니다.");
+        
+        // 학교 이름만으로 검색해보기
+        const { data: schoolOnlyData } = await supabase
+          .from("users")
+          .select("*")
+          .eq("teacherInfo->>school", school);
+          
+        console.log("학교 이름만으로 검색한 결과:", schoolOnlyData);
+        
+        if (schoolOnlyData && schoolOnlyData.length > 0) {
+          console.log("학교는 일치하지만 교사 정보가 일치하지 않는 데이터가 있습니다.");
+        }
+        
+        alert("해당 조건의 학생 정보가 없습니다.");
       }
 
     } catch (error) {
