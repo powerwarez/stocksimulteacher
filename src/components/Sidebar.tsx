@@ -7,7 +7,7 @@ const Sidebar = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       alert("로그아웃 되었습니다. 가이랩은 선생님의 열정을 응원합니다.");
-      window.location.href = "/";
+      window.location.href = "/login";
     } catch (error) {
       console.error("로그아웃 오류:", error);
       alert("로그아웃 중 오류가 발생했습니다.");

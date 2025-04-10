@@ -50,16 +50,42 @@ const CreateStudent = () => {
         email: user.email || '',
       });
 
-      // 마지막으로 입력한 학교 정보를 supabase에 저장
+      // 마지막으로 입력한 학교 정보를 schoolinfo 테이블에 저장
       try {
-        // user.id를 사용하여 해당 사용자의 lastinputschool을 업데이트
-        const { error } = await supabase
-          .from('users')
-          .update({ lastinputschool: school })
-          .eq('email', user.email);
+        if (!user.id) {
+          console.error('사용자 ID를 찾을 수 없습니다.');
+          return;
+        }
         
-        if (error) {
-          console.error('학교 정보 저장 실패:', error);
+        // schoolinfo 테이블에서 해당 사용자의 정보 조회
+        const { data: existingSchool, error: fetchError } = await supabase
+          .from('schoolinfo')
+          .select('*')
+          .eq('teacherID', user.id)
+          .single();
+        
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116는 데이터가 없는 경우
+          console.error('학교 정보 조회 실패:', fetchError);
+        }
+        
+        // 데이터가 있으면 업데이트, 없으면 새로 생성
+        if (existingSchool) {
+          const { error: updateError } = await supabase
+            .from('schoolinfo')
+            .update({ lastinputschool: school })
+            .eq('teacherID', user.id);
+          
+          if (updateError) {
+            console.error('학교 정보 업데이트 실패:', updateError);
+          }
+        } else {
+          const { error: insertError } = await supabase
+            .from('schoolinfo')
+            .insert([{ teacherID: user.id, lastinputschool: school }]);
+          
+          if (insertError) {
+            console.error('학교 정보 저장 실패:', insertError);
+          }
         }
       } catch (err) {
         console.error('학교 정보 저장 중 오류 발생:', err);

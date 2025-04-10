@@ -160,12 +160,12 @@ const Students: React.FC = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         
-        if (user) {
-          // 사용자 이메일로 lastinputschool 정보 조회
+        if (user && user.id) {
+          // schoolinfo 테이블에서 마지막으로 입력한 학교 정보 조회
           const { data, error } = await supabase
-            .from('users')
+            .from('schoolinfo')
             .select('lastinputschool')
-            .eq('email', user.email)
+            .eq('teacherID', user.id)
             .single();
           
           if (error) {
@@ -228,6 +228,44 @@ const Students: React.FC = () => {
 
       console.log("새로운 teacherInfo:", newTeacherInfo);
       setTeacherInfo(newTeacherInfo);
+
+      // 학교 정보를 schoolinfo 테이블에 업데이트
+      if (user.id) {
+        try {
+          // 기존 정보 조회
+          const { data: existingSchool, error: fetchError } = await supabase
+            .from('schoolinfo')
+            .select('*')
+            .eq('teacherID', user.id)
+            .single();
+            
+          if (fetchError && fetchError.code !== 'PGRST116') {
+            console.error('학교 정보 조회 실패:', fetchError);
+          }
+          
+          // 데이터가 있으면 업데이트, 없으면 새로 생성
+          if (existingSchool) {
+            const { error: updateError } = await supabase
+              .from('schoolinfo')
+              .update({ lastinputschool: school })
+              .eq('teacherID', user.id);
+            
+            if (updateError) {
+              console.error('학교 정보 업데이트 실패:', updateError);
+            }
+          } else {
+            const { error: insertError } = await supabase
+              .from('schoolinfo')
+              .insert([{ teacherID: user.id, lastinputschool: school }]);
+            
+            if (insertError) {
+              console.error('학교 정보 저장 실패:', insertError);
+            }
+          }
+        } catch (err) {
+          console.error('학교 정보 저장 중 오류 발생:', err);
+        }
+      }
 
       // 모든 조건 사용
       const { data: userData, error: fetchError } = await supabase
