@@ -49,6 +49,21 @@ const CreateStudent = () => {
         displayName: user.user_metadata.full_name || '',
         email: user.email || '',
       });
+
+      // 마지막으로 입력한 학교 정보를 supabase에 저장
+      try {
+        // user.id를 사용하여 해당 사용자의 lastinputschool을 업데이트
+        const { error } = await supabase
+          .from('users')
+          .update({ lastinputschool: school })
+          .eq('email', user.email);
+        
+        if (error) {
+          console.error('학교 정보 저장 실패:', error);
+        }
+      } catch (err) {
+        console.error('학교 정보 저장 중 오류 발생:', err);
+      }
     }
   };
 

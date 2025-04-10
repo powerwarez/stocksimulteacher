@@ -33,7 +33,7 @@ const Sidebar = () => {
           <ul className="space-y-2">
             <li>
               <Link
-                to="/students"
+                to="/main/students"
                 className="block px-4 py-2 rounded hover:bg-gray-700 transition-colors text-2xl"
               >
                 학생 현황
@@ -41,7 +41,7 @@ const Sidebar = () => {
             </li>
             <li>
               <Link
-                to="/create-student"
+                to="/main/create-student"
                 className="block px-4 py-2 rounded hover:bg-gray-700 transition-colors text-2xl"
               >
                 학생 생성

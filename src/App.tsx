@@ -10,6 +10,7 @@ import Students from "./pages/Students";
 import CreateStudent from "./pages/CreateStudent";
 import ErrorBoundary from "./ErrorBoundary"; // ErrorBoundary가 별도 파일에 있다면 가져옵니다.
 import Login from "./Login";
+import LandingPage from "./LandingPage";
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 import "./index.css";
@@ -52,11 +53,19 @@ const App: React.FC = () => {
             path="/"
             element={
               <ProtectedRoute>
+                <LandingPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/main"
+            element={
+              <ProtectedRoute>
                 <MainPage />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/students" replace />} />
+            <Route index element={<Navigate to="/main/students" replace />} />
             <Route path="students" element={<Students />} />
             <Route path="create-student" element={<CreateStudent />} />
           </Route>

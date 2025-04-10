@@ -154,6 +154,37 @@ const Students: React.FC = () => {
     checkAuth();
   }, []);
 
+  useEffect(() => {
+    // 로그인한 사용자의 마지막으로 입력한 학교 정보 가져오기
+    const fetchLastInputSchool = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // 사용자 이메일로 lastinputschool 정보 조회
+          const { data, error } = await supabase
+            .from('users')
+            .select('lastinputschool')
+            .eq('email', user.email)
+            .single();
+          
+          if (error) {
+            console.error('마지막 입력 학교 정보 조회 실패:', error);
+            return;
+          }
+          
+          if (data && data.lastinputschool) {
+            setSchool(data.lastinputschool);
+          }
+        }
+      } catch (err) {
+        console.error('학교 정보 조회 중 오류 발생:', err);
+      }
+    };
+
+    fetchLastInputSchool();
+  }, []);
+
   const handleSchoolSubmit = async () => {
     console.log("handleSchoolSubmit 함수 호출됨");
     console.log("현재 입력된 학교:", school);

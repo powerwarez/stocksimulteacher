@@ -1,36 +1,29 @@
-import { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "./supabaseClient"; // supabaseClient.tsx에서 가져옵니다.
+import { supabase } from "./supabaseClient";
 
-function Login() {
+const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = React.useState(false);
 
   const toggleGuide = () => {
     setIsGuideOpen(!isGuideOpen);
   };
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/");
-      }
-    };
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      alert("로그아웃 되었습니다. 가이랩은 선생님의 열정을 응원합니다.");
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("로그아웃 오류:", error);
+      alert("로그아웃 중 오류가 발생했습니다.");
+    }
+  };
 
-    checkSession();
-  }, [navigate]);
-
-  const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin + "/",
-      },
-    });
-    if (error) console.error("Error logging in with Google:", error.message);
+  const goToStudentManagement = () => {
+    navigate("/main");
   };
 
   return (
@@ -176,23 +169,26 @@ function Login() {
           )}
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex flex-col md:flex-row justify-center gap-4">
           <button
-            onClick={handleGoogleLogin}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center"
+            onClick={goToStudentManagement}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center justify-center"
           >
-            <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"
-              />
-            </svg>
-            Google 계정으로 로그인
+            <span className="mr-2">👨‍👩‍👧‍👦</span>
+            학생 관리 페이지로 이동
+          </button>
+          
+          <button
+            onClick={handleLogout}
+            className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center justify-center"
+          >
+            <span className="mr-2">👋</span>
+            로그아웃
           </button>
         </div>
       </div>
     </div>
   );
-}
+};
 
-export default Login;
+export default LandingPage; 
